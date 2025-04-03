@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 
+// Establish the socket connection
 const socket = io("http://localhost:5000");
 
 export default function Chat() {
@@ -9,27 +10,42 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [joined, setJoined] = useState(false);
 
+  // Assuming the logged-in user information is available (replace with actual user info)
+  const currentUserId = "user123"; // Replace with your actual logic to get the logged-in user ID
+
   useEffect(() => {
+    socket.on("previousMessages", (messages) => {
+      setMessages(messages);
+    });
+
+    // Listen for new messages from other users
     socket.on("receiveMessage", (message) => {
       setMessages((prev) => [...prev, message]);
     });
 
+    // Clean up the socket listeners when component unmounts
     return () => {
+      socket.off("previousMessages");
       socket.off("receiveMessage");
     };
   }, []);
 
   const joinRoom = () => {
     if (room.trim() !== "") {
-      socket.emit("joinRoom", room);
+      socket.emit("joinRoom", room); // Join the chat room
       setJoined(true);
     }
   };
 
   const sendMessage = () => {
     if (input.trim() !== "" && room.trim() !== "") {
-      socket.emit("sendMessage", { room, message: input });
-      setInput("");
+      // Emit the message with the required details
+      socket.emit("sendMessage", {
+        sender: currentUserId, // The user who is sending the message (use actual user ID)
+        chatId: room, // The chat room's ID
+        content: input, // The message content
+      });
+      setInput(""); // Clear the input field
     }
   };
 
@@ -52,7 +68,7 @@ export default function Chat() {
           <h3>Room: {room}</h3>
           <div>
             {messages.map((msg, index) => (
-              <p key={index}>{msg}</p>
+              <p key={index}>{msg.content}</p>
             ))}
           </div>
           <input

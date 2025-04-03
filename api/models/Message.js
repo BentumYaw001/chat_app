@@ -6,12 +6,17 @@ const MessageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
-    content: { type: String, required: true },
+    content: {
+      type: String,
+      required: true,
+    },
     chatId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Chat",
       required: true,
+      index: true,
     },
     reactions: [
       {
@@ -22,8 +27,18 @@ const MessageSchema = new mongoose.Schema(
         },
       },
     ],
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
+
+MessageSchema.index({ chatId: 1, createdAt: -1 });
+
+MessageSchema.index({ chatId: 1, readBy: 1 });
 
 export default mongoose.model("Message", MessageSchema);

@@ -13,10 +13,18 @@ export const createChat = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { sender, content, chatId } = req.body;
-    const message = await Message.create({ sender, content, chatId });
-    res.status(201).json(message);
+    const { chatId, sender, content } = req.body;
+
+    if (!chatId || !sender || !content) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const newMessage = new Message({ chatId, sender, content });
+
+    const savedMessage = await newMessage.save();
+    res.status(201).json(savedMessage);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error sending message:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
